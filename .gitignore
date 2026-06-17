@@ -1,0 +1,47 @@
+# ------------------------
+# Project data directories
+# ------------------------
+
+# Raw data (large, external)
+data/
+
+# Generated simulation or analysis output
+results/
+
+# -----------------------
+# File types to ignore 
+# -----------------------
+
+# Raw data files
+*.dat
+*.out
+*.bin
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Python build/cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# Editor & OS files
+.DS_Store
+Thumbs.db
+
+# VS Code settings
+.vscode/

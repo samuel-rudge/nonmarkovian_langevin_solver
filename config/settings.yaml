@@ -1,0 +1,101 @@
+# config/settings.yaml
+
+files_root: "."
+#/home/sr1160/Documents/Postdoc/Projects/Project_negative_friction/Code/nonmarkovian_langevin_solver"
+
+data_identifier: "2l1m_negative_friction_w_time_dependence"
+data_root: "data"
+results_root: "results"
+source_root: "source"
+
+results_subdirs:
+  el_forces: "el_forces"
+  steady_state: "steady_state"
+  transient: "transient"
+
+#--------------------
+# Physical parameters
+# -------------------
+
+# Energy parameters are in eV
+# Voltage is in V
+# Coordinates are dimensionless
+# Temperature is in Kelvin
+
+molecule_lead_coupling: 100
+temperature: 300
+Delta: 0.2
+electronic_tier: 3
+n_vib: 1
+vib_freq: 0.03
+grid_limit: 25
+units_type: "dimensionless"
+potential:
+  type: "harmonic"
+  
+voltage:
+  min: 0.00
+  max: 0.00
+  step: 0.05
+
+#-------------------------
+# Decomposition parameters 
+# ------------------------
+
+decomposition:
+  max_decomposition_time: 500
+  n_terms: 6
+  L_param: 500
+  dt: 0.1
+  max_lorentzian_terms: 20
+  tol_lorentzian: 1e-5
+  tol_esprit: 1e-3
+  cutoff_factor: 1
+  cutoff_frequency: 5
+  Nsupport_points: 2000
+  center_index_type: "center"
+  reset_number: 5
+
+#----------------------------
+# Default plotting parameters 
+# ---------------------------
+
+plotting:
+  linewidth: 2
+  font_family: 'serif'
+  use_tex: true
+  axes_linewidth: 2
+  label_fontsize: 30
+  tick_labelsize: 20
+  tick_length: 6
+  tick_width: 2
+
+#----------------------------
+# Default simulation parameters 
+# ---------------------------
+
+simulation:
+  phys_ic_type: WIGNER
+  aux_ic_type: STATIONARY
+  n_traj: 480
+  ic_mean: [0,0]
+  ic_var: [0.03,0.03]
+  init_vib_temp: 300
+  dt: 2
+  n_timesteps: 5000
+  traj_type: STATIONARY
+  markovian: False
+  n_cores: 20
+  base_seed: 42
+  Kval: 1
+  data_storage:
+    store_state: True
+    store_energy: True
+    store_current: True
+    store_stoch_force: True
+  ss_processing:
+    replace_data: True
+    ss_time: 400000
+    n_sample: 500
+    dt_ind: 100
+    percentage_traj_to_keep: 1
