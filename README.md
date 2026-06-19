@@ -1,4 +1,4 @@
-# quantum_heom — Electronic Friction and Non-Markovian Langevin Framework
+# Electronic Friction and Non-Markovian Langevin Dynamics (EFLD) Framework
 
 This repository implements a Python **electronic friction and Langevin dynamics framework** for nonadiabatic nuclear motion in molecular systems interacting with metallic environments. Electronic degrees of freedom are treated quantum mechanically and encoded through precomputed response functions obtained from HEOM-based calculations, including mean forces, friction kernels, and force–force correlation functions.
 
