@@ -62,7 +62,7 @@ def generate_decomposition(cfg,function_type,xdir,initial_guess):
         )
     elif function_type is FunctionType.CORRFUNC:
         poles = esprit_decomposition(
-            uniform_function_integrand,n_terms,L_param,dt
+                uniform_function_integrand,n_terms,L_param,dt
             )
 
     return poles,uniform_time_vec
@@ -134,6 +134,7 @@ def esprit_smoothing(
     input_poles: List[pole_dataclass.Pole],
     prev_poles: List[pole_dataclass.Pole]
 ):
+
 
     """
     Perform a Lorentzian decomposition starting from a provided initial guess.

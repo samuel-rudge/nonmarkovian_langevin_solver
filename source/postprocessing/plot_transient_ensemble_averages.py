@@ -66,7 +66,6 @@ def generate_energy_single_plot(results_to_plot,cfg,results_layout):
     # ax.axhline(y=0.4425, color='g', linestyle='--')
     # ax.axhline(y=0.02255694990, color='g', linestyle='-')
     ax.axhline(y=temp / 2, color='g', linestyle='-')
-    # ax.axhline(y=0.0144, color='g', linestyle='-')
     ax.set_ylabel(
                      fr'$\displaystyle  {boldtext("Energy")} $',
                      fontsize=plot_cfg["label_fontsize"]
@@ -78,11 +77,11 @@ def generate_energy_single_plot(results_to_plot,cfg,results_layout):
     legend_elements = [
     Line2D([0],[0],color='r',linestyle='-',lw=2,label=fr"$\displaystyle \langle {boldtext('KE')} \rangle$"),
     Line2D([0],[0],color='b',linestyle='-',lw=2,label=fr"$\displaystyle \langle {boldtext('PE')} \rangle$"),
-    # Line2D([0],[0],color='g',linestyle='-',lw=2,label=fr"$\displaystyle \langle E_{{{boldtext('vib')}}} \rangle_{{{boldtext('qu. HEOM')}}}$"),
+    Line2D([0],[0],color='g',linestyle='-',lw=2,label=fr"$\displaystyle \langle E_{{{boldtext('vib')}}} \rangle_{{{boldtext('qu. HEOM')}}}$")
     # Line2D([0],[0],color='g',linestyle='--',lw=2,label=fr"$\displaystyle \langle E_{{{boldtext('vib')}}} \rangle_{{{boldtext('Mark. Friction')}}}$")
-    Line2D([0],[0],color='g',linestyle='-',lw=2,label=r"$\displaystyle \frac{k_{B}T}{2}$")
+    # Line2D([0],[0],color='g',linestyle='-',lw=2,label=r"$\displaystyle \frac{k_{B}T}{2}$")
     ]
-    ax.legend(handles=legend_elements,loc='upper right',fontsize=18)
+    ax.legend(handles=legend_elements,loc='lower right',fontsize=18)
     set_default_axis_style(cfg,ax)
     set_default_axis_style(cfg,ax)
     ax.set_xlim(0,np.max(time_vec))

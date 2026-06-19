@@ -11,7 +11,6 @@ from source.utils import file_walker
 from matplotlib.lines import Line2D
 import os
 import matplotlib as mpl
-from scipy.interpolate import CubicSpline
 mpl.rcParams['savefig.directory'] = os.getcwd()
 
 def w_coth_w_over_T(w, T, tol=1e-6):
@@ -43,28 +42,11 @@ def generate_freq_vec(cfg):
 
 def generate_estimate(poles,time_vec,freq_vec,function_type,itrx):
 
-    x_coordinate_vec = poles["x"]
-    freq_real_all = poles["freq_real"]
-    freq_imag_all = poles["freq_imag"]
-    weight_real_all = poles["weight_real"]
-    weight_imag_all = poles["weight_imag"]
-    n_terms = freq_real_all.shape[1]
-    spline_mask = np.abs(x_coordinate_vec) > 0.1
-    freq_real_splined = [CubicSpline(x_coordinate_vec[spline_mask],freq_real_all[spline_mask,itrp]) for itrp in range(n_terms)]
-    freq_real = np.array([freq_real_splined[itrp](x_coordinate_vec[itrx]) for itrp in range(n_terms)])
-    freq_imag_splined = [CubicSpline(x_coordinate_vec[spline_mask],freq_imag_all[spline_mask,itrp]) for itrp in range(n_terms)]
-    freq_imag = np.array([freq_imag_splined[itrp](x_coordinate_vec[itrx]) for itrp in range(n_terms)])
-    weight_real_splined = [CubicSpline(x_coordinate_vec[spline_mask],weight_real_all[spline_mask,itrp]) for itrp in range(n_terms)]
-    weight_real = np.array([weight_real_splined[itrp](x_coordinate_vec[itrx]) for itrp in range(n_terms)])
-    weight_imag_splined = [CubicSpline(x_coordinate_vec[spline_mask],weight_imag_all[spline_mask,itrp]) for itrp in range(n_terms)]
-    weight_imag = np.array([weight_imag_splined[itrp](x_coordinate_vec[itrx]) for itrp in range(n_terms)])
-    # freq_real = poles["freq_real"][itrx]
-    # freq_imag = poles["freq_imag"][itrx]
-    print(poles["freq_real"][itrx])
-    print(freq_real)
+    freq_real = poles["freq_real"][itrx]
+    freq_imag = poles["freq_imag"][itrx]
     freq = (freq_real + 1j*freq_imag)[:, None]
-    # weight_real = poles["weight_real"][itrx]
-    # weight_imag = poles["weight_imag"][itrx]
+    weight_real = poles["weight_real"][itrx]
+    weight_imag = poles["weight_imag"][itrx]
     weight = (weight_real + 1j*weight_imag)[:, None]
 
     time_arr = time_vec[None, :]
@@ -153,7 +135,7 @@ def plot_poles(cfg,voltage,itrx):
     generation_labels = [Line2D([0],[0],color='k',linestyle='-',
                     lw=2,label=fr"$\displaystyle {boldtext('Exact')}$"),
                     Line2D([0],[0],color='k',linestyle='--',
-                    lw=2,label=fr"$\displaystyle {boldtext('Reconstr.')}$")]
+                    lw=2,label=fr"$\displaystyle {boldtext('ESPRIT')}$")]
     frequency_labels = [Line2D([0],[0],color='b',linestyle='-',
                     lw=2,label=r"$\displaystyle \tilde{D}(\omega)$"),
                     Line2D([0],[0],color='r',linestyle='-',
@@ -167,13 +149,11 @@ def plot_poles(cfg,voltage,itrx):
     set_default_axis_style(cfg,ax)
     set_default_axis_style(cfg,ax)
     ax[0,0].set_xlim(-2,2)
-    ax[0,1].set_xlim(0,200)
+    # ax[0,1].set_xlim(0,200)
     ax[0,1].plot(data["corrfunc_exact"][:,0],data["corrfunc_exact"][:,1],'b')
     ax[0,1].plot(data["corrfunc_exact"][:,0],data["corrfunc_estimate_time"],'b--')
     ax[0,1].plot(data["friction_exact"][:,0],-data["friction_exact"][:,1],'r')
     ax[0,1].plot(data["friction_exact"][:,0],data["friction_estimate_time"],'r--')
-    ax[1,0].text(0.1,0.9,fr"$\displaystyle x = 0$",
-               transform=ax[1,0].transAxes,ha="left", va="top",fontsize=24)
 
     print(len(data["friction_poles"]["freq_real"]))
     ax[1,0].scatter(data["corrfunc_poles"]["freq_real"],data["corrfunc_poles"]["freq_imag"]
@@ -208,15 +188,13 @@ if __name__ == "__main__":
 
     from source.utils.config import load_config
     import argparse
-    from decimal import Decimal
-    
     cfg = load_config()
     parser = argparse.ArgumentParser(
         description="Run preprocessing for all voltages or a single voltage."
     )
     parser.add_argument(
         "--voltage",
-        type=Decimal,
+        type=float,
         default=None,
         help="If provided, preprocess only this voltage"
     )

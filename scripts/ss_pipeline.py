@@ -1,7 +1,52 @@
 # scripts/run_single_voltage.py
 """
-Docstring for ss_pipeline
+Steady-state propagation pipeline for nuclear Langevin dynamics.
+
+This script drives the propagation stage of the simulation workflow.
+For each selected bias voltage, it evolves an ensemble of nuclear
+trajectories under electronic forces until a steady state is reached.
+
+For a given voltage, the steady-state pipeline:
+    - loads the simulation configuration
+    - initializes nuclear trajectories according to user-defined
+      initial-condition settings
+    - propagates all trajectories using the selected Langevin integrator
+      (Markovian or non-Markovian)
+    - monitors transient behavior during the approach to steady state
+    - retains the subset of trajectories used for steady-state sampling
+    - computes ensemble-averaged transient observables
+    - generates diagnostic plots to assess convergence to steady state
+
+Transient ensemble averages and plots allow the user to verify that
+quantities such as kinetic energy, potential energy, position, and
+momentum have stabilized before steady-state sampling is performed.
+
+Steady-state sampling itself occurs during the same propagation run.
+The resulting steady-state samples are stored for later postprocessing.
+
+USAGE
+-----
+Propagate trajectories to steady state for all voltages:
+    python3 -m scripts.ss_pipeline
+
+Propagate trajectories to steady state for a single voltage:
+    python3 -m scripts.ss_pipeline --voltage "<value>eV"
+
+NOTES
+-----
+- This stage assumes that electronic-force preprocessing has already
+  been completed.
+- Markovian and non-Markovian propagators share the same workflow and
+  differ only in the integrator used internally.
+- Transient observables are computed immediately after propagation;
+  steady-state observables are finalized during postprocessing.
+
+See also:
+    - docs/propagate.md
+    - docs/preprocess.md
+    - docs/postprocess.md
 """
+
 from source.langevin_propagation.process_single_voltage import (
     compute_single_voltage_to_ss,
     compute_single_voltage_sample_ss

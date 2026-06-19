@@ -146,6 +146,7 @@ def generate_optimized_parameters(
         w_kp1_real = initial_guess[k+1].real_part_weight
         w_kp1_imag = initial_guess[k+1].imag_part_weight
 
+
         alpha_init[j] = 0.5 * (b_k_real + b_kp1_real)
         omega_init[j] = 0.5 * abs(b_k_imag - b_kp1_imag)
         C_init[j] = w_k_real + w_kp1_real

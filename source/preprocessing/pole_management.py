@@ -164,6 +164,7 @@ def pole_tracker(
 
     return poles_tracked
 
+
 def track_poles_pair(
     prev_poles: List[pole_dataclass.Pole],
     curr_poles: List[pole_dataclass.Pole]
@@ -295,98 +296,3 @@ def enforce_conjugate_weights(
                 break
 
     return poles_processed
-
-import numpy as np
-from scipy.optimize import linear_sum_assignment
-
-def track_poles_pair_two_stage(
-    prev_poles,
-    curr_poles,
-    freq_tol=1e-3,
-    weight_eps=1e-3
-):
-    """
-    Two-stage pole tracking:
-    1) Assign using pole location only (gamma, omega)
-    2) Break near-degenerate ties using normalized weight magnitude
-
-    Parameters
-    ----------
-    prev_poles, curr_poles : list of Pole
-        Poles at x_n and x_{n+1}
-    freq_tol : float
-        Distance threshold below which poles are considered degenerate
-        (in normalized frequency space)
-    weight_eps : float
-        Relative strength of weight tie-breaker (<< 1)
-
-    Returns
-    -------
-    new_order : list of Pole
-        curr_poles reordered to match prev_poles
-    """
-
-    n = len(prev_poles)
-
-    # -----------------------------
-    # Extract arrays
-    # -----------------------------
-    gamma_prev = np.array([p.real_part_freq for p in prev_poles])
-    omega_prev = np.array([p.imag_part_freq for p in prev_poles])
-
-    gamma_curr = np.array([p.real_part_freq for p in curr_poles])
-    omega_curr = np.array([p.imag_part_freq for p in curr_poles])
-
-    w_prev = np.array([
-        abs(p.real_part_weight + 1j * p.imag_part_weight)
-        for p in prev_poles
-    ])
-    w_curr = np.array([
-        abs(p.real_part_weight + 1j * p.imag_part_weight)
-        for p in curr_poles
-    ])
-
-    # -----------------------------
-    # Normalize scales
-    # -----------------------------
-    gamma_scale = np.mean(np.abs(gamma_prev)) + 1e-12
-    omega_scale = np.mean(np.abs(omega_prev)) + 1e-12
-    w_scale = np.mean(w_prev) + 1e-12
-
-    # -----------------------------
-    # Stage 1: frequency-only cost
-    # -----------------------------
-    cost_freq = np.zeros((n, n))
-    for i in range(n):
-        for j in range(n):
-            dg = (gamma_prev[i] - gamma_curr[j]) / gamma_scale
-            dw = (omega_prev[i] - omega_curr[j]) / omega_scale
-            cost_freq[i, j] = np.sqrt(dg**2 + dw**2)
-
-    row_ind, col_ind = linear_sum_assignment(cost_freq)
-
-    # -----------------------------
-    # Stage 2: tie-breaking with weights
-    # -----------------------------
-    cost = cost_freq.copy()
-
-    for r, c in zip(row_ind, col_ind):
-        # Find other candidates that are nearly as good
-        close = cost_freq[r] < freq_tol
-
-        if np.sum(close) > 1:
-            for j in np.where(close)[0]:
-                dw_norm = (w_prev[r] - w_curr[j]) / w_scale
-                cost[r, j] += weight_eps * dw_norm**2
-
-    # Final assignment with refined cost
-    row_ind, col_ind = linear_sum_assignment(cost)
-
-    # -----------------------------
-    # Reorder poles
-    # -----------------------------
-    new_order = [None] * n
-    for r, c in zip(row_ind, col_ind):
-        new_order[r] = curr_poles[c]
-
-    return new_order

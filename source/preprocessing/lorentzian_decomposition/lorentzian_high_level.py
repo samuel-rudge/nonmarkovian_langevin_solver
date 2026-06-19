@@ -36,10 +36,9 @@ from source.preprocessing import pole_dataclass
 from source.preprocessing.lorentzian_decomposition import (
     lorentzian_reconstruction,
     lorentzian_initialization,
-    lorentzian_optimization,
-    lorentzian_optimization_friction
+    lorentzian_optimization
 )
-from source.utils.enums import LorPoleType, FunctionType
+from source.utils.enums import LorPoleType
 from typing import (
     Dict,
     List,
@@ -165,8 +164,7 @@ def lorentzian_decomposition_w_input(
     input_poles: List[pole_dataclass.Pole],
     initial_guess: List[pole_dataclass.Pole],
     time_vec: NDArray[np.floating],
-    center_poles: List[pole_dataclass.Pole],
-    ft: FunctionType
+    center_poles: List[pole_dataclass.Pole]
 ) -> List[pole_dataclass.Pole]:
     
     """
@@ -205,22 +203,13 @@ def lorentzian_decomposition_w_input(
     decomp_parameters_center[LorPoleType.WEIGHT] /= initial_norm_center
     
     # Optimize initial_guess decomp_parameters via constrained linear least-squares
-    if ft is FunctionType.CORRFUNC:
-        decomp_parameters = lorentzian_optimization.generate_optimized_parameters(
-            freq_vec_pos,
-            target,
-            decomp_parameters,
-            time_vec,
-            center_poles=decomp_parameters_center
-        )
-    if ft is FunctionType.FRICTION:
-        decomp_parameters = lorentzian_optimization_friction.generate_optimized_parameters_signed_weights(
-            freq_vec_pos,
-            target,
-            decomp_parameters,
-            time_vec,
-            center_poles=decomp_parameters_center
-        )
+    decomp_parameters = lorentzian_optimization.generate_optimized_parameters(
+        freq_vec_pos,
+        target,
+        decomp_parameters,
+        time_vec,
+        center_poles=decomp_parameters_center
+    )
     
     # Convert optimized set of poles into universal dataclass form
     frequencies = (decomp_parameters[LorPoleType.WIDTH] + 

@@ -6,6 +6,7 @@
 data/
 
 # Generated simulation or analysis output
+source_old*
 results/
 
 # -----------------------

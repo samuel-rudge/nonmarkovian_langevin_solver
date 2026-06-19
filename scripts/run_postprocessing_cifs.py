@@ -1,17 +1,53 @@
-# scripts/run_preprocessing.py
+# scripts/run_postprocessing_cifs.py
 """
-Script to run the full preprocessing pipeline, which
-    - scrapes the forces from all parameters/voltages in the results directory
-      specified in config, in an exploratory way
-    - loads the time-dependent friction and correlation function for each x-value 
-    - uses ESPRIT to decompose the friction and correlation function at each
-      x-value in terms of a set number of frequencies and weights
-    - collects, orders, and saves these into arrays
-    - plots the frequencies and weights as functions of x
+Electronic forces postprocessing pipeline.
 
-USAGE:
-------
-python3 -m scripts.run_preprocessing
+This script postprocesses *precomputed electronic force datasets* for one or
+more bias voltages. It operates exclusively on data generated during the
+preprocessing stage and stored in the `results/` directory.
+
+For each voltage, the script:
+    - loads x-dependent adiabatic forces, Markovian friction, and
+      non-Markovian force-force correlation functions
+    - decomposes time-dependent friction and correlation functions at each
+      nuclear coordinate using ESPRIT into a discrete set of frequencies
+      and weights
+    - collects and orders the extracted poles consistently across the
+      nuclear coordinate grid
+    - generates diagnostic plots of:
+        * Markovian forces and friction as functions of x
+        * non-Markovian mode frequencies vs x
+        * non-Markovian mode weights vs x
+    - saves all plots as PDF files in:
+        results / <identifier> / voltage_<value>eV / el_forces /
+
+The decomposition is performed independently at each nuclear configuration,
+and no dynamical propagation is involved in this step.
+
+This script is intended for:
+    - validating electronic-force datasets
+    - inspecting x-dependent structure in friction and noise
+    - diagnosing nonequilibrium effects as a function of bias voltage
+
+USAGE
+-----
+Postprocess electronic forces for all voltages:
+    python3 -m scripts.run_postprocessing_cifs
+
+Postprocess electronic forces for a single voltage:
+    python3 -m scripts.run_postprocessing_cifs --voltage "<value>eV"
+
+NOTES
+-----
+- Preprocessing must be completed before running this script.
+- This script performs no data modification; it only reads existing results
+  and generates plots.
+- All output is written to voltage-resolved subdirectories under `results/`.
+
+See also:
+    - docs/electronic_force_dataset_spec.md
+    - docs/preprocess.md
+    - docs/postprocess.md
 """
 
 from source.utils.config import load_config 

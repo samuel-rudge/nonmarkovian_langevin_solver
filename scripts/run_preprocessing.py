@@ -1,17 +1,48 @@
 # scripts/run_preprocessing.py
 """
-Script to run the full preprocessing pipeline, which
-    - scrapes the forces from all parameters/voltages in the results directory
-      specified in config, in an exploratory way
-    - loads the time-dependent friction and correlation function for each x-value 
-    - uses ESPRIT to decompose the friction and correlation function at each
-      x-value in terms of a set number of frequencies and weights
-    - collects, orders, and saves these into arrays
-    - plots the frequencies and weights as functions of x
+Electronic-force preprocessing pipeline.
 
-USAGE:
-------
-python3 -m scripts.run_preprocessing
+This script constructs the electronic force datasets required for Langevin
+propagation. It operates on raw electronic data stored on disk and produces
+voltage-resolved, x-dependent force representations used during dynamical
+simulations.
+
+For each bias voltage, the preprocessing stage:
+    - loads raw electronic observables on a nuclear coordinate grid
+    - constructs x-dependent adiabatic forces, friction kernels, and
+      force-force correlation functions
+    - treats Markovian and non-Markovian contributions on equal footing
+    - decomposes time-dependent friction and correlation functions at each
+      nuclear coordinate using ESPRIT into a finite set of modes
+      (frequencies and weights)
+    - orders and stores the extracted modes consistently across the grid
+    - writes all processed datasets to the results directory
+    - generates diagnostic plots of forces, frequencies, and weights
+
+The resulting datasets are subsequently interpolated and queried during
+trajectory propagation.
+
+This script must be run before any propagation or postprocessing steps.
+
+USAGE
+-----
+Preprocess electronic-force datasets for all voltages:
+    python3 -m scripts.run_preprocessing
+
+Preprocess electronic-force datasets for a single voltage:
+    python3 -m scripts.run_preprocessing --voltage "<value>eV"
+
+NOTES
+-----
+- Preprocessing is independent of trajectory propagation.
+- The computational cost scales with the number of grid points and
+  decomposition parameters, but is typically much cheaper than propagation.
+- Output is written to voltage-resolved subdirectories under `results/`.
+
+See also:
+    - docs/preprocess.md
+    - docs/electronic_force_dataset_spec.md
+    - docs/propagate.md
 """
 
 from source.utils.config import load_config 

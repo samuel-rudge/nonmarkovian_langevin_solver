@@ -2,27 +2,13 @@
 
 from pathlib import Path
 from source.utils.io_utils import ensure_directory,clear_directory
-from decimal import Decimal
-
-TWO_DP = Decimal("0.00")
-THREE_DP = Decimal("0.000")
-TENTH = Decimal("0.05")
-
-def format_voltage(v: Decimal) -> str:
-    if (v % TENTH) == 0:
-        return f"{v.quantize(TWO_DP)}"
-    else:
-        return f"{v.quantize(THREE_DP)}"
 
 class ResultsLayout:
 
     def __init__(self, cfg, voltage):
-        if not isinstance(voltage, Decimal):
-            voltage = Decimal(str(voltage))
-
 
         self.base = Path(cfg["results_root"] / cfg["system_identifier_dir"])
-        self.voltage_dir = self.base / f"voltage_{format_voltage(voltage)}eV"
+        self.voltage_dir = self.base / f"voltage_{voltage:.2f}eV"
 
         self.transient = self.voltage_dir / "transient"
         self.transient_traj = self.transient / "trajectories"

@@ -15,7 +15,7 @@ import numpy as np
 
 def generate_voltage_dir(data_root,voltage):
 
-    return data_root / Path(f"voltage_{voltage}eV")
+    return data_root / Path(f"voltage_{voltage:.2f}eV")
 
 def iter_voltage_dirs(data_root,cfg):
     

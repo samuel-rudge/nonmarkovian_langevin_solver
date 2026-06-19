@@ -17,7 +17,6 @@ import numpy as np
 import logging
 import os
 import matplotlib as mpl
-from scipy.interpolate import CubicSpline
 mpl.rcParams['savefig.directory'] = os.getcwd()
 
 # Configure logging
@@ -105,19 +104,9 @@ def generate_el_forces_decomposition_single_plot(results_to_plot,ft,pt,cfg,save_
     plot_cfg = cfg["plotting"]
     fig, ax = plt.subplots(2,1,sharex=True,figsize=(9,12),gridspec_kw={'hspace': 0.0},dpi=80)
     real_function = results_to_plot[f"{pt.tag}_real"]
-    n_terms = real_function.shape[1]
-    spline_mask = np.abs(x_coordinate_vec) > 0.1
-    real_function_splined = [CubicSpline(x_coordinate_vec[spline_mask],real_function[spline_mask,itrp]) for itrp in range(n_terms)]
-    real_function_splined = np.array([real_function_splined[itrp](x_coordinate_vec) for itrp in range(n_terms)]).T
-    print(real_function.shape)
-    print(real_function_splined.shape)
     imag_function = results_to_plot[f"{pt.tag}_imag"]
-    if ft is FunctionType.FRICTION:
-        text = fr"$\displaystyle {boldtext("Friction")}$"
-    elif ft is FunctionType.CORRFUNC:
-        text = fr"$\displaystyle {boldtext("Correlation Function")}$"
+    text = fr"$\displaystyle {boldtext(ft.plot_tag)}$"
     ax[0].plot(x_coordinate_vec,real_function,linewidth=plot_cfg["linewidth"])
-    # ax[0].plot(x_coordinate_vec,real_function_splined,linewidth=plot_cfg["linewidth"],linestyle='--')
     ax[0].text(0.1,0.9,text,transform=ax[0].transAxes,ha="left", va="top",fontsize=24)
     ax[0].set_ylabel(
                      fr'$\displaystyle  {boldtext("Re")}({boldtext(pt.tag)}) $',
@@ -147,25 +136,25 @@ def generate_el_forces_decomposition_both_plots(results_to_plot,cfg,save_dir,ft)
 
 def generate_all_plots_single_voltage(cfg,voltage_dir):
 
-    # results_dir_markovian_forces = voltage_dir / cfg["el_forces_root"] / "unprocessed_markovian_forces.npz"
-    # results_to_plot_markovian_forces = np.load(results_dir_markovian_forces)
-    # adiabatic_force_single_plot(
-    #     results_to_plot_markovian_forces,
-    #     cfg,
-    #     voltage_dir
-    # )
-    # markovian_fdt_single_plot(
-    #     results_to_plot_markovian_forces,
-    #     cfg,
-    #     voltage_dir
-    # )
-    # results_dir_el_obs = voltage_dir / cfg["el_forces_root"] / "unprocessed_el_observables.npz"
-    # results_to_plot_el_obs = np.load(results_dir_el_obs)
-    # current_ad_single_plot(
-    #     results_to_plot_el_obs,
-    #     cfg,
-    #     voltage_dir
-    # )
+    results_dir_markovian_forces = voltage_dir / cfg["el_forces_root"] / "unprocessed_markovian_forces.npz"
+    results_to_plot_markovian_forces = np.load(results_dir_markovian_forces)
+    adiabatic_force_single_plot(
+        results_to_plot_markovian_forces,
+        cfg,
+        voltage_dir
+    )
+    markovian_fdt_single_plot(
+        results_to_plot_markovian_forces,
+        cfg,
+        voltage_dir
+    )
+    results_dir_el_obs = voltage_dir / cfg["el_forces_root"] / "unprocessed_el_observables.npz"
+    results_to_plot_el_obs = np.load(results_dir_el_obs)
+    current_ad_single_plot(
+        results_to_plot_el_obs,
+        cfg,
+        voltage_dir
+    )
     for ft in FunctionType:
         results_dir_poles = voltage_dir / cfg["el_forces_root"] / f"unprocessed_weights_frequencies_{ft.tag}.npz"
         results_to_plot_poles = np.load(results_dir_poles)
@@ -182,25 +171,25 @@ def generate_all_plots(cfg):
 
     results_el_forces_root = cfg["results_root"] / cfg["system_identifier_dir"] 
     for voltage_dir in file_walker.iter_voltage_dirs(results_el_forces_root,cfg):
-        # results_dir_markovian_forces = voltage_dir / cfg["el_forces_root"] / "unprocessed_markovian_forces.npz"
-        # results_to_plot_markovian_forces = np.load(results_dir_markovian_forces)
-        # adiabatic_force_single_plot(
-        #      results_to_plot_markovian_forces,
-        #      cfg,
-        #      voltage_dir
-        # )
-        # markovian_fdt_single_plot(
-        #      results_to_plot_markovian_forces,
-        #      cfg,
-        #      voltage_dir
-        # )
-        # results_dir_el_obs = voltage_dir / cfg["el_forces_root"] / "unprocessed_el_observables.npz"
-        # results_to_plot_el_obs = np.load(results_dir_el_obs)
-        # current_ad_single_plot(
-        #      results_to_plot_el_obs,
-        #      cfg,
-        #      voltage_dir
-        # )
+        results_dir_markovian_forces = voltage_dir / cfg["el_forces_root"] / "unprocessed_markovian_forces.npz"
+        results_to_plot_markovian_forces = np.load(results_dir_markovian_forces)
+        adiabatic_force_single_plot(
+             results_to_plot_markovian_forces,
+             cfg,
+             voltage_dir
+        )
+        markovian_fdt_single_plot(
+             results_to_plot_markovian_forces,
+             cfg,
+             voltage_dir
+        )
+        results_dir_el_obs = voltage_dir / cfg["el_forces_root"] / "unprocessed_el_observables.npz"
+        results_to_plot_el_obs = np.load(results_dir_el_obs)
+        current_ad_single_plot(
+             results_to_plot_el_obs,
+             cfg,
+             voltage_dir
+        )
         for ft in FunctionType:
             results_dir_poles = voltage_dir / cfg["el_forces_root"] / f"unprocessed_weights_frequencies_{ft.tag}.npz"
             results_to_plot_poles = np.load(results_dir_poles)

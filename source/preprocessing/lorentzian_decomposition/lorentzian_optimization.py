@@ -77,7 +77,7 @@ def generate_optimized_parameters(
     lambda_rep = 1e-3 * lambda_smooth
     lambda_poles = 0.0
     if center_poles is not None:
-        lambda_poles = 1 * lambda_smooth
+        lambda_poles = 10 * lambda_smooth
     omega_floor = max(1e-12,freq_vec[1] - freq_vec[0])
 
     omega_init = decomp_parameters[LorPoleType.FREQUENCY]
@@ -140,7 +140,7 @@ def generate_optimized_parameters(
 
         # Weighted squared error (can adjust weights if needed)
         err_log = np.log(target + 1e-12) - np.log(estimate + 1e-12)
-        return (np.mean(err_log**2) + lambda_smooth * penalty + lambda_poles * penalty_poles)
+        return (np.mean(err_log**2) + lambda_smooth * penalty + lambda_poles * penalty)
 
     # -------------------------------------------------------
     # Run optimizer (can tune method and options)

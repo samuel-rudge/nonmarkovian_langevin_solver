@@ -172,7 +172,6 @@ from numpy.typing import NDArray
     
 #     return weight_opt,freq_opt
 
-
 def generate_optimized_parameters(
         time_vec: NDArray[np.floating],
         target: NDArray[np.floating], 
@@ -206,69 +205,73 @@ def generate_optimized_parameters(
     eps_weight = 1e-10
     dx = 0.1  # step in x, used for normalization in penalties
     n_poles = len(initial_guess)
-    lambda_smooth = 1e-10
-    omega_smooth = 1e-1 * lambda_smooth
-    weight_smooth = 1e-10
 
     # Extract initial parameters
-    lambda_init = np.array([p.real_part_freq for p in initial_guess])
-    omega_init = np.array([np.abs(p.imag_part_freq) for p in initial_guess])
+    freq_r_init = np.array([p.real_part_freq for p in initial_guess])
+    freq_i_init = np.array([p.imag_part_freq for p in initial_guess])
     weight_r_init = np.array([p.real_part_weight for p in initial_guess])
     weight_i_init = np.array([p.imag_part_weight for p in initial_guess])
 
     # Flatten for optimizer
-    params_init = np.concatenate([lambda_init, omega_init, weight_r_init, weight_i_init])
+    params_init = np.concatenate([freq_r_init, freq_i_init, weight_r_init, weight_i_init])
 
-    # Previous pole arrays if available
+    # Prepare previous pole arrays if available
     if prev_poles is not None:
-        lambda_prev = np.array([p.real_part_freq for p in prev_poles])
-        omega_prev = np.array([p.imag_part_freq for p in prev_poles])
+        freq_r_prev = np.array([p.real_part_freq for p in prev_poles])
+        freq_i_prev = np.array([p.imag_part_freq for p in prev_poles])
         weight_r_prev = np.array([p.real_part_weight for p in prev_poles])
         weight_i_prev = np.array([p.imag_part_weight for p in prev_poles])
     else:
-        lambda_prev = lambda_init
-        omega_prev = omega_init
+        freq_r_prev = freq_r_init
+        freq_i_prev = freq_i_init
         weight_r_prev = weight_r_init
         weight_i_prev = weight_i_init
 
     def objective(params):
         # Unpack
-        lambda_opt = params[0:n_poles]
-        omega_opt = params[n_poles:2*n_poles]
+        freq_r_opt = params[0:n_poles]
+        freq_i_opt = params[n_poles:2*n_poles]
         weight_r_opt = params[2*n_poles:3*n_poles]
         weight_i_opt = params[3*n_poles:4*n_poles]
-
         weight_opt = weight_r_opt + 1j*weight_i_opt
-        freq_opt = lambda_opt + 1j*omega_opt
+        freq_opt = freq_r_opt + 1j*freq_i_opt
 
         # ------------------------
         # Smoothness penalties
         # ------------------------
         penalty = 0.0
 
-        # 1. Decay rate smoothness (log-scale)
-        lambda_safe = np.maximum(lambda_opt, eps_freq)
-        lambda_prev_safe = np.maximum(lambda_prev, eps_freq)
-        penalty += lambda_smooth * np.sum(((np.log(lambda_safe) - np.log(lambda_prev_safe))/dx)**2)
+        # Decay rate smoothness (log)
+        freq_r_safe = np.maximum(freq_r_opt, eps_freq)
+        log_freq_r_opt = np.log(freq_r_safe)
+        log_freq_r_prev = np.log(np.maximum(freq_r_prev, eps_freq))
+        penalty += np.sum(((log_freq_r_opt - log_freq_r_prev)/dx)**2)
 
-        # 2. Frequency smoothness, adaptive: reduce penalty for near-zero omega
-        adapt = omega_prev**2 / (omega_prev**2 + eps_freq)
-        penalty += omega_smooth * np.sum(((omega_opt - omega_prev)/dx)**2 * adapt)
+        # Imaginary part smoothness, adaptive: reduces as mode becomes overdamped
+        adapt = freq_i_prev**2 / (freq_i_prev**2 + eps_freq)
+        penalty += 1e-1 * np.sum(((freq_i_opt - freq_i_prev)/dx)**2 * adapt)
 
-        # 3. Weight smoothness (normalized by previous magnitude)
+        # Weight smoothness (normalized)
         denom = weight_r_prev**2 + weight_i_prev**2 + eps_weight
-        penalty += weight_smooth * np.sum(((weight_r_opt - weight_r_prev)/dx)**2 / denom)
-        penalty += weight_smooth * np.sum(((weight_i_opt - weight_i_prev)/dx)**2 / denom)
+        penalty += 1e-5 * np.sum(((weight_r_opt - weight_r_prev)/dx)**2 / denom)
+        penalty += 1e-5 * np.sum(((weight_i_opt - weight_i_prev)/dx)**2 / denom)
+
+        # Smoothness on total reconstructed function gamma(x,t)
+        gamma_prev = np.sum((weight_r_prev + 1j*weight_i_prev)[:,None] *
+                            np.exp(-(freq_r_prev + 1j*freq_i_prev)[:,None]*time_vec), axis=0)
+        gamma_opt = np.sum(weight_opt[:,None] * np.exp(-freq_opt[:,None]*time_vec), axis=0)
+        penalty += 1e-4 * np.mean(np.abs(gamma_opt - gamma_prev)**2)
 
         # ------------------------
         # Reconstruction error
         # ------------------------
-        gamma_opt = np.sum(np.real(weight_opt[:,None] * np.exp(-freq_opt[:,None]*time_vec)), axis=0)
-        err = target - gamma_opt
-        return np.mean(err**2) #+ penalty
+        estimate = np.real(gamma_opt)
+        err = target - estimate
 
-    # Bounds: decay rates >= 0, omega unrestricted (can be zero), weights unrestricted
-    bounds = [(0.0, None)]*n_poles + [(None, None)]*n_poles + [(None, None)]*(2*n_poles)
+        return np.mean(err**2) + penalty
+
+    # Bounds: ensure decay rates >= 0
+    bounds = [(0.0, None)]*n_poles + [(None, None)]*(3*n_poles)
 
     # Run optimizer
     res = minimize(
@@ -281,12 +284,7 @@ def generate_optimized_parameters(
 
     # Unpack optimized parameters
     params_opt = res.x
-    lambda_opt = params_opt[0:n_poles]
-    omega_opt = params_opt[n_poles:2*n_poles]
-    weight_r_opt = params_opt[2*n_poles:3*n_poles]
-    weight_i_opt = params_opt[3*n_poles:4*n_poles]
-
-    weight_opt = weight_r_opt + 1j*weight_i_opt
-    freq_opt = lambda_opt + 1j*omega_opt
+    freq_opt = params_opt[0:n_poles] + 1j*params_opt[n_poles:2*n_poles]
+    weight_opt = params_opt[2*n_poles:3*n_poles] + 1j*params_opt[3*n_poles:4*n_poles]
 
     return weight_opt, freq_opt

@@ -73,7 +73,7 @@ def decompose_single_x_coordinate(
     if function_type is FunctionType.CORRFUNC:
         if prev_poles is not None and center_poles is not None:
             final_poles = lorentzian_high_level.lorentzian_decomposition_w_input(
-                cfg,input_poles,prev_poles,time_vec,center_poles,function_type
+                cfg,input_poles,prev_poles,time_vec,center_poles
             ) 
         else: 
             final_poles = lorentzian_high_level.lorentzian_decomposition(
@@ -83,12 +83,9 @@ def decompose_single_x_coordinate(
         # if prev_poles is not None:
         #     input_poles = pole_management.track_poles_pair(prev_poles,input_poles)
         # if prev_poles is not None and center_poles is not None:
-        #     # final_poles = esprit_high_level.esprit_smoothing(
-        #     #     cfg,function_type,xdir,input_poles=input_poles,prev_poles=prev_poles
-        #     # )
-        #     final_poles = lorentzian_high_level.lorentzian_decomposition_w_input(
-        #         cfg,input_poles,prev_poles,time_vec,center_poles,function_type
-        #     )
+        #     final_poles = esprit_high_level.esprit_smoothing(
+        #         cfg,function_type,xdir,input_poles=input_poles,prev_poles=prev_poles
+        #     ) 
         # else: 
         final_poles = input_poles
 
