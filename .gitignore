@@ -7,7 +7,8 @@ data/
 
 # Generated simulation or analysis output
 source_old*
-results/
+source.zip
+resultsu/
 
 # -----------------------
 # File types to ignore 
